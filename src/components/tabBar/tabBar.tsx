@@ -37,13 +37,13 @@ export default function TabBar({
       key: "laporan",
       label: "Lapor",
       icon: FilePlus2,
-      route: "/form-laporan",
+      route: "/buatLaporan",
     },
     {
       key: "saya",
       label: "Laporan Saya",
       icon: ClipboardList,
-      route: "/laporan-saya",
+      route: "/laporanSaya",
     },
     {
       key: "profil",
