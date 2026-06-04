@@ -64,9 +64,6 @@ export default function Profile() {
         bio: userData.bio || "",
       });
 
-      if (userData.photo) {
-        setPhoto(userData.photo);
-      }
     } catch (err) {
       console.log(err);
     }
@@ -87,103 +84,60 @@ export default function Profile() {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      setLoading(true);
+const handleSave = async () => {
+  try {
+    setLoading(true);
 
-      const formData = new FormData();
+    console.log("Kirim data");
 
-      formData.append(
-        "email",
-        form.email
-      );
-
-      formData.append(
-        "bio",
-        form.bio
-      );
-
-      if (form.password) {
-        formData.append(
-          "password",
-          form.password
-        );
-      }
-
-      if (
-        photo &&
-        !photo.startsWith("http")
-      ) {
-        formData.append("photo", {
-          uri: photo,
-          name: "profile.jpg",
-          type: "image/jpeg",
-        } as any);
-      }
-
-      await api.put(
-        "/auth/profile",
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        }
-      );
-
-      const updatedUser = {
-        ...user,
+    const response = await api.put(
+      "/auth/profile",
+      {
         email: form.email,
+        password: form.password,
         bio: form.bio,
-        photo,
-      };
-
-      await saveUser(updatedUser);
-
-      setUser(updatedUser);
-
-      Alert.alert(
-        "Berhasil",
-        "Profil berhasil diperbarui"
-      );
-
-      setEditing(false);
-    } catch (err: any) {
-      Alert.alert(
-        "Error",
-        err?.response?.data?.message ||
-          "Gagal update profil"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Yakin ingin keluar?",
-      [
-        {
-          text: "Batal",
-          style: "cancel",
-        },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-
-            router.replace(
-              "/(auth)/login" as any
-            );
-          },
-        },
-      ]
+      }
     );
-  };
 
+    console.log("Response:", response.data);
+
+    const updatedUser = response.data.user;
+
+    await saveUser(updatedUser);
+
+    setUser(updatedUser);
+
+    Alert.alert(
+      "Berhasil",
+      "Profil berhasil diperbarui"
+    );
+
+    setEditing(false);
+  } catch (err: any) {
+    console.log(
+      "SAVE ERROR:",
+      err.response?.data
+    );
+
+    Alert.alert(
+      "Error",
+      err.response?.data?.message ||
+        "Gagal update profil"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleLogout = async () => {
+  await logout();
+
+  console.log("Logout berhasil");
+
+  router.push("/(auth)/login");
+
+  console.log("Sudah push login");
+};
   const initials =
     user?.name
       ?.split(" ")

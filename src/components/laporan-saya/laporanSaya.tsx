@@ -353,31 +353,29 @@ export default function LaporanSaya() {
             }
           </Text>
 
-          {item.gambar &&
-            item.gambar.length >
-              0 && (
-              <ScrollView
-                horizontal
-              >
-                {item.gambar.map(
-                  (
-                    img,
-                    idx
-                  ) => (
-                    <Image
-                      key={idx}
-                      source={{
-                        uri: `http://10.211.220.58:5000/uploads/${img}`,
-                      }}
-                      style={
-                        styles.image
-                      }
-                    />
-                  )
-                )}
-              </ScrollView>
-            )}
-
+{item.gambar &&
+  item.gambar.length > 0 && (
+    <ScrollView horizontal>
+      {item.gambar.map(
+        (img, idx) => (
+          <Image
+            key={idx}
+            source={{
+              uri: img,
+            }}
+            style={styles.image}
+            onError={(e) =>
+              console.log(
+                "IMAGE ERROR:",
+                img,
+                e.nativeEvent
+              )
+            }
+          />
+        )
+      )}
+    </ScrollView>
+)}
           {item.tanggapan ? (
             <View
               style={

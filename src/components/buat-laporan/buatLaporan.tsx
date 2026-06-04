@@ -144,59 +144,47 @@ export default function BuatLaporan() {
 
         setLoading(true);
 
-        const formData =
-          new FormData();
+const formData = new FormData();
 
-        formData.append(
-          "category_id",
-          String(
-            selectedCategoryId
-          )
-        );
+formData.append(
+  "category_id",
+  String(selectedCategoryId)
+);
 
-        formData.append(
-          "judul_laporan",
-          judul
-        );
+formData.append(
+  "judul_laporan",
+  judul
+);
 
-        formData.append(
-          "isi_laporan",
-          deskripsi
-        );
+formData.append(
+  "isi_laporan",
+  deskripsi
+);
 
-        formData.append(
-          "tanggal_kejadian",
-          tanggalKejadian
-        );
+formData.append(
+  "tanggal_kejadian",
+  tanggalKejadian
+);
 
-        formData.append(
-          "lokasi",
-          lokasi
-        );
+formData.append(
+  "lokasi",
+  lokasi
+);
 
-        images.forEach(
-          (image, index) => {
-            formData.append(
-              "gambar",
-              {
-                uri: image.uri,
-                name: `gambar-${index}.jpg`,
-                type: "image/jpeg",
-              } as any
-            );
-          }
-        );
+images.forEach((image) => {
+  formData.append(
+    "gambar",
+    image.file,
+    image.fileName
+  );
+});
 
-        await api.post(
-          "/laporan",
-          formData,
-          {
-            headers: {
-              "Content-Type":
-                "multipart/form-data",
-            },
-          }
-        );
+console.log("IMAGES:", images);
+
+await api.post(
+  "/laporan",
+  formData
+);
 
         Alert.alert(
           "Berhasil",
