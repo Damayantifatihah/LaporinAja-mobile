@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -96,11 +97,13 @@ export default function LoginScreen() {
       >
         {/* LOGO */}
         <View style={styles.logoContainer}>
-          <Image
-            source={require('../../../../assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.logoPill}>
+            <Image
+              source={require('../../../../assets/images/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
 
         {/* HEADING */}
@@ -145,14 +148,17 @@ export default function LoginScreen() {
                 style={styles.eyeBtn}
                 onPress={() => setShowPassword(!showPassword)}
               >
-                <Text style={styles.eyeIcon}>
-                  {showPassword ? '🙈' : '👁️'}
-                </Text>
-              </TouchableOpacity>
+                <Ionicons
+                  name={
+                    showPassword
+                      ? "eye-off-outline"
+                      : "eye-outline"
+                  }
+                  size={22}
+                  color="#777"
+                />
+            </TouchableOpacity>
             </View>
-
-            
-              <Text style={styles.forgotText}>Lupa kata sandi?</Text>
           
           </View>
 
@@ -245,30 +251,54 @@ const styles = StyleSheet.create({
   },
 
   // Logo
-  logoContainer: {
-    marginBottom: 24,
+logoContainer: {
+  marginBottom: 30,
+  alignItems: "center",
+},
+
+logoPill: {
+  backgroundColor: "rgba(255,255,255,0.92)",
+  paddingHorizontal: 20,
+  paddingVertical: 12,
+  borderRadius: 50,
+
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 4,
   },
-  logo: {
-    width: 160,
-    height: 48,
-  },
+  shadowOpacity: 0.15,
+  shadowRadius: 8,
+  elevation: 5,
+},
+
+logo: {
+  width: 250,
+  height: 65,
+},
 
   // Heading
-  headingContainer: {
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  heading: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-  subheading: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
-    marginTop: 4,
-  },
+headingContainer: {
+  alignItems: 'center',
+  marginBottom: 32,
+  paddingHorizontal: 20,
+},
+
+heading: {
+  fontSize: 34,
+  fontWeight: '800',
+  color: '#FFFFFF',
+  textAlign: 'center',
+},
+
+subheading: {
+  fontSize: 15,
+  color: 'rgba(255,255,255,0.90)',
+  marginTop: 6,
+  textAlign: 'center',
+  lineHeight: 22,
+},
+
 
   // Card form
   card: {
@@ -312,8 +342,8 @@ const styles = StyleSheet.create({
   },
   eyeBtn: {
     position: 'absolute',
-    right: 14,
-    top: 14,
+    right: 15,
+    top: 15,
   },
   eyeIcon: {
     fontSize: 20,

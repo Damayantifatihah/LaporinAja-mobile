@@ -11,6 +11,7 @@ import { getUser } from "@/store/auth.store";
 
 interface HomepageProps {
   totalLaporan?: number;
+  verifikasi?: number;
   diproses?: number;
   selesai?: number;
   ditolak?: number;
@@ -18,6 +19,7 @@ interface HomepageProps {
 
 export default function Homepage({
   totalLaporan = 12,
+  verifikasi = 2,
   diproses = 2,
   selesai = 7,
   ditolak = 1,
@@ -55,32 +57,38 @@ export default function Homepage({
     }
   );
 
-  const stats = [
-    {
-      label: "Total Laporan",
-      value: totalLaporan,
-      bg: "#EFF6FF",
-      icon: "📋",
-    },
-    {
-      label: "Laporan Selesai",
-      value: selesai,
-      bg: "#F0FDF4",
-      icon: "✅",
-    },
-    {
-      label: "Sedang Diproses",
-      value: diproses,
-      bg: "#FFFBEB",
-      icon: "⏳",
-    },
-    {
-      label: "Ditolak",
-      value: ditolak,
-      bg: "#FEF2F2",
-      icon: "❌",
-    },
-  ];
+const stats = [
+  {
+    label: "Total Laporan",
+    value: totalLaporan,
+    bg: "#EFF6FF",
+    icon: "📋",
+  },
+  {
+    label: "Menunggu",
+    value: verifikasi,
+    bg: "#DBEAFE",
+    icon: "🔵",
+  },
+  {
+    label: "Diproses",
+    value: diproses,
+    bg: "#FFFBEB",
+    icon: "⏳",
+  },
+  {
+    label: "Selesai",
+    value: selesai,
+    bg: "#F0FDF4",
+    icon: "✅",
+  },
+  {
+    label: "Ditolak",
+    value: ditolak,
+    bg: "#FEF2F2",
+    icon: "❌",
+  },
+];
 
   return (
     <ScrollView

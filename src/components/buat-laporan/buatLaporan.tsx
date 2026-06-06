@@ -55,29 +55,33 @@ export default function BuatLaporan() {
     fetchCategories();
   }, []);
 
-  const fetchCategories =
-    async () => {
-      try {
-        const res =
-          await api.get(
-            "/categories"
-          );
+const fetchCategories = async () => {
+  try {
+    const res = await api.get("/categories");
 
-        const data =
-          res.data.data ||
-          res.data;
+    console.log(
+      "CATEGORY RESPONSE:",
+      JSON.stringify(res.data, null, 2)
+    );
 
-        setCategories(data);
+    const data =
+      res.data.data ||
+      res.data;
 
-        if (data.length > 0) {
-          setSelectedCategoryId(
-            data[0].id
-          );
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
+    console.log("DATA:", data);
+
+    setCategories(data);
+
+    if (data.length > 0) {
+      setSelectedCategoryId(data[0].id);
+    }
+  } catch (err: any) {
+    console.log(
+      "CATEGORY ERROR:",
+      err?.response?.data || err
+    );
+  }
+};
 
   const pickImage =
     async () => {
