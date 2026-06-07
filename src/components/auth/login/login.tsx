@@ -15,16 +15,18 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import {
-  loginUser,
-} from "@/services/authService";
-
-import {
-  saveToken,
-  saveUser,
-} from "@/store/auth.store";
+import { loginUser } from "@/services/authService";
+import { saveToken, saveUser } from "@/store/auth.store";
 
 const { width, height } = Dimensions.get('window');
+
+const showAlert = (title: string, message: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -33,59 +35,62 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
- const handleLogin = async () => {
-  if (
-    !email.trim() ||
-    !password.trim()
-  ) {
-    Alert.alert(
-      "Oops",
-      "Email dan kata sandi wajib diisi."
-    );
-    return;
-  }
+  const handleLogin = async () => {
+    if (!email.trim() && !password.trim()) {
+      showAlert("Oops", "Email dan kata sandi wajib diisi.");
+      return;
+    }
 
-  try {
-    setLoading(true);
+    if (!email.trim()) {
+      showAlert("Oops", "Email wajib diisi.");
+      return;
+    }
 
-    const data =
-      await loginUser(
-        email.trim(),
-        password
-      );
+    if (!password.trim()) {
+      showAlert("Oops", "Kata sandi wajib diisi.");
+      return;
+    }
 
-    await saveToken(
-      data.token
-    );
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      showAlert("Format Salah", "Masukkan alamat email yang valid.");
+      return;
+    }
 
-    await saveUser(
-      data.user
-    );
+    try {
+      setLoading(true);
 
-    Alert.alert(
-      "Berhasil",
-      "Login berhasil"
-    );
+      const data = await loginUser(email.trim(), password);
 
-    router.replace("/homepage" as any);
-  } catch (error: any) {
-    Alert.alert(
-      "Login Gagal",
-      error?.response?.data
-        ?.message ||
-        "Terjadi kesalahan"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      await saveToken(data.token);
+      await saveUser(data.user);
+
+      router.replace("/homepage" as any);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 401) {
+        showAlert("Login Gagal", "Email atau kata sandi salah. Coba lagi.");
+      } else if (status === 404) {
+        showAlert("Akun Tidak Ditemukan", "Email ini belum terdaftar. Silakan daftar terlebih dahulu.");
+      } else if (status === 422) {
+        showAlert("Data Tidak Valid", message || "Periksa kembali email dan kata sandi kamu.");
+      } else if (!error?.response) {
+        showAlert("Koneksi Gagal", "Tidak dapat terhubung ke server. Periksa koneksi internet kamu.");
+      } else {
+        showAlert("Login Gagal", message || "Terjadi kesalahan. Coba beberapa saat lagi.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Background circles dekoratif */}
       <View style={styles.circleTopRight} />
       <View style={styles.circleTopRightInner} />
       <View style={styles.circleBottomLeft} />
@@ -149,17 +154,12 @@ export default function LoginScreen() {
                 onPress={() => setShowPassword(!showPassword)}
               >
                 <Ionicons
-                  name={
-                    showPassword
-                      ? "eye-off-outline"
-                      : "eye-outline"
-                  }
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={22}
                   color="#777"
                 />
-            </TouchableOpacity>
+              </TouchableOpacity>
             </View>
-          
           </View>
 
           {/* BUTTON MASUK */}
@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Decorative circles (sama dengan splash)
   circleTopRight: {
     position: 'absolute',
     top: -width * 0.25,
@@ -250,57 +249,45 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 
-  // Logo
-logoContainer: {
-  marginBottom: 30,
-  alignItems: "center",
-},
-
-logoPill: {
-  backgroundColor: "rgba(255,255,255,0.92)",
-  paddingHorizontal: 20,
-  paddingVertical: 12,
-  borderRadius: 50,
-
-  shadowColor: "#000",
-  shadowOffset: {
-    width: 0,
-    height: 4,
+  logoContainer: {
+    marginBottom: 30,
+    alignItems: "center",
   },
-  shadowOpacity: 0.15,
-  shadowRadius: 8,
-  elevation: 5,
-},
+  logoPill: {
+    backgroundColor: "rgba(255,255,255,0.92)",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  logo: {
+    width: 250,
+    height: 65,
+  },
 
-logo: {
-  width: 250,
-  height: 65,
-},
+  headingContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 20,
+  },
+  heading: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  subheading: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.90)',
+    marginTop: 6,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
 
-  // Heading
-headingContainer: {
-  alignItems: 'center',
-  marginBottom: 32,
-  paddingHorizontal: 20,
-},
-
-heading: {
-  fontSize: 34,
-  fontWeight: '800',
-  color: '#FFFFFF',
-  textAlign: 'center',
-},
-
-subheading: {
-  fontSize: 15,
-  color: 'rgba(255,255,255,0.90)',
-  marginTop: 6,
-  textAlign: 'center',
-  lineHeight: 22,
-},
-
-
-  // Card form
   card: {
     width: '100%',
     backgroundColor: '#FFFFFF',
@@ -333,7 +320,6 @@ subheading: {
     borderColor: '#ECECEC',
   },
 
-  // Password field
   passwordWrapper: {
     position: 'relative',
   },
@@ -344,9 +330,6 @@ subheading: {
     position: 'absolute',
     right: 15,
     top: 15,
-  },
-  eyeIcon: {
-    fontSize: 20,
   },
 
   forgotContainer: {
@@ -359,7 +342,6 @@ subheading: {
     fontWeight: '500',
   },
 
-  // Button
   btnLogin: {
     height: 52,
     borderRadius: 14,
@@ -383,7 +365,6 @@ subheading: {
     letterSpacing: 0.3,
   },
 
-  // Divider
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -400,7 +381,6 @@ subheading: {
     color: '#AAAAAA',
   },
 
-  // Register row
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -416,7 +396,6 @@ subheading: {
     fontWeight: '700',
   },
 
-  // Tagline
   tagline: {
     marginTop: 28,
     fontSize: 13,
