@@ -52,7 +52,11 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const userData = await getUser();
+      const response =
+      await api.get("/auth/me");
+
+      const userData =
+        response.data.user;
 
       if (!userData) return;
 
@@ -63,6 +67,10 @@ export default function Profile() {
         password: "",
         bio: userData.bio || "",
       });
+
+      setPhoto(
+      userData.profile_photo || null
+      );
 
     } catch (err) {
       console.log(err);
@@ -96,6 +104,7 @@ const handleSave = async () => {
         email: form.email,
         password: form.password,
         bio: form.bio,
+        profile_photo: photo,
       }
     );
 
