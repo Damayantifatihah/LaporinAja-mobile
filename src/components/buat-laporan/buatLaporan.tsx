@@ -55,6 +55,18 @@ export default function BuatLaporan() {
     }
   };
 
+  const formatTanggal = (text: string) => {
+    const cleaned = text.replace(/\D/g, "");
+    let formatted = cleaned;
+    if (cleaned.length >= 3 && cleaned.length <= 4) {
+      formatted = cleaned.slice(0, 2) + "/" + cleaned.slice(2);
+    } else if (cleaned.length >= 5) {
+      formatted =
+        cleaned.slice(0, 2) + "/" + cleaned.slice(2, 4) + "/" + cleaned.slice(4, 8);
+    }
+    setTanggalKejadian(formatted);
+  };
+
   const pickImage = async () => {
     if (images.length >= 3) {
       Alert.alert("Maksimal 3 foto");
@@ -76,17 +88,20 @@ export default function BuatLaporan() {
     try {
       if (!judul.trim()) return Alert.alert("Judul wajib diisi");
       if (!deskripsi.trim()) return Alert.alert("Deskripsi wajib diisi");
-      if (!tanggalKejadian) return Alert.alert("Tanggal wajib diisi");
+      if (!tanggalKejadian || tanggalKejadian.length < 10)
+        return Alert.alert("Tanggal wajib diisi dengan format DD/MM/YYYY");
       if (!latitude || !longitude) return Alert.alert("Pilih lokasi di peta");
 
       setLoading(true);
+
+      const [dd, mm, yyyy] = tanggalKejadian.split("/");
 
       const formData = new FormData();
 
       formData.append("category_id", String(selectedCategoryId));
       formData.append("judul_laporan", judul);
       formData.append("isi_laporan", deskripsi);
-      formData.append("tanggal_kejadian", tanggalKejadian);
+      formData.append("tanggal_kejadian", `${yyyy}-${mm}-${dd}`);
 
       // 🔥 LOCATION FROM MAP
       formData.append("latitude", String(latitude));
@@ -144,7 +159,15 @@ export default function BuatLaporan() {
         </View>
 
         <Text style={styles.label}>Tanggal</Text>
-        <TextInput style={styles.input} value={tanggalKejadian} onChangeText={setTanggalKejadian} />
+        <TextInput
+          style={styles.input}
+          value={tanggalKejadian}
+          onChangeText={formatTanggal}
+          placeholder="DD/MM/YYYY"
+          placeholderTextColor="#aaa"
+          keyboardType="numeric"
+          maxLength={10}
+        />
 
         {/* 🔥 MAP PICKER */}
         <Text style={styles.label}>Lokasi (Pilih di Map)</Text>
@@ -181,130 +204,121 @@ export default function BuatLaporan() {
     </ScrollView>
   );
 }
-const styles =
-  StyleSheet.create({
-    container: {
-      padding: 16,
-      backgroundColor:
-        "#F8F8F8",
-    },
 
-    header: {
-      backgroundColor:
-        "#B45743",
-      borderRadius: 18,
-      padding: 20,
-      marginBottom: 16,
-    },
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    backgroundColor: "#F8F8F8",
+  },
 
-    headerSmall: {
-      color:
-        "rgba(255,255,255,0.7)",
-      fontSize: 12,
-    },
+  header: {
+    backgroundColor: "#B45743",
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 16,
+  },
 
-    headerTitle: {
-      color: "#FFF",
-      fontSize: 22,
-      fontWeight: "700",
-      marginTop: 4,
-    },
+  headerSmall: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 12,
+  },
 
-    card: {
-      backgroundColor:
-        "#FFF",
-      borderRadius: 18,
-      padding: 16,
-    },
+  headerTitle: {
+    color: "#FFF",
+    fontSize: 22,
+    fontWeight: "700",
+    marginTop: 4,
+  },
 
-    label: {
-      fontWeight: "600",
-      marginBottom: 8,
-      marginTop: 14,
-    },
+  card: {
+    backgroundColor: "#FFF",
+    borderRadius: 18,
+    padding: 16,
+  },
 
-    input: {
-      borderWidth: 1,
-      borderColor: "#E5E7EB",
-      borderRadius: 12,
-      paddingHorizontal: 14,
-      height: 48,
-    },
+  label: {
+    fontWeight: "600",
+    marginBottom: 8,
+    marginTop: 14,
+  },
 
-    textarea: {
-      borderWidth: 1,
-      borderColor: "#E5E7EB",
-      borderRadius: 12,
-      padding: 14,
-      minHeight: 120,
-      textAlignVertical:
-        "top",
-    },
+  input: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+  },
 
-    categoryWrap: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 8,
-    },
+  textarea: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    padding: 14,
+    minHeight: 120,
+    textAlignVertical: "top",
+  },
 
-    category: {
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: "#E5E7EB",
-    },
+  categoryWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
 
-    categoryActive: {
-      backgroundColor:
-        "#F9EAE7",
-      borderColor:
-        "#B45743",
-    },
+  category: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
 
-    uploadBtn: {
-      height: 50,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderStyle: "dashed",
-      borderColor: "#B45743",
-      alignItems: "center",
-      justifyContent: "center",
-      marginTop: 8,
-    },
+  categoryActive: {
+    backgroundColor: "#F9EAE7",
+    borderColor: "#B45743",
+  },
 
-    uploadText: {
-      color: "#B45743",
-      fontWeight: "600",
-    },
+  uploadBtn: {
+    height: 50,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: "#B45743",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
 
-    previewWrap: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      marginTop: 12,
-      gap: 10,
-    },
+  uploadText: {
+    color: "#B45743",
+    fontWeight: "600",
+  },
 
-    preview: {
-      width: 90,
-      height: 90,
-      borderRadius: 12,
-    },
+  previewWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 12,
+    gap: 10,
+  },
 
-    submitBtn: {
-      marginTop: 24,
-      backgroundColor:
-        "#B45743",
-      height: 50,
-      borderRadius: 12,
-      justifyContent:
-        "center",
-      alignItems: "center",
-    },
+  preview: {
+    width: 90,
+    height: 90,
+    borderRadius: 12,
+  },
 
-    submitText: {
-      color: "#FFF",
-      fontWeight: "700",
-      fontSize: 15,
-    },
-  });
+  submitBtn: {
+    marginTop: 24,
+    backgroundColor: "#B45743",
+    height: 50,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  submitText: {
+    color: "#FFF",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+});
