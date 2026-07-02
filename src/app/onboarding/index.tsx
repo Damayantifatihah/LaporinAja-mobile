@@ -8,15 +8,24 @@ import {
   FlatList,
   TouchableOpacity,
   StatusBar,
+  Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
+const monoFont = Platform.select({
+  ios: 'Courier',
+  android: 'monospace',
+  default: 'monospace',
+});
+
 type Slide = {
   id: string;
+  code: string;
   icon: string;
+  stamp: string;
   title: string;
   description: string;
 };
@@ -24,26 +33,34 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     id: '1',
+    code: 'LAPOR',
     icon: '📋',
+    stamp: 'BARU',
     title: 'Lapor dengan Mudah',
     description:
       'Laporkan masalah di lingkunganmu hanya dengan beberapa ketukan, lengkap dengan foto sebagai bukti.',
   },
   {
     id: '2',
+    code: 'LOKASI',
     icon: '📍',
+    stamp: 'AKURAT',
     title: 'Lokasi Akurat',
     description:
       'Tandai lokasi kejadian secara otomatis agar laporanmu lebih akurat dan cepat ditindaklanjuti.',
   },
   {
     id: '3',
+    code: 'STATUS',
     icon: '🔔',
+    stamp: 'TERPANTAU',
     title: 'Pantau Progres',
     description:
       'Ikuti perkembangan laporanmu secara real-time, dari mulai diverifikasi hingga selesai.',
   },
 ];
+
+const PERFORATION_COUNT = 16;
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -56,15 +73,20 @@ export default function OnboardingScreen() {
     router.replace('/login');
   };
 
+  const goToIndex = (index: number) => {
+    flatListRef.current?.scrollToOffset({
+      offset: index * width,
+      animated: true,
+    });
+    setActiveIndex(index);
+  };
+
   const handleNext = () => {
     if (isLastSlide) {
       goToLogin();
       return;
     }
-    flatListRef.current?.scrollToIndex({
-      index: activeIndex + 1,
-      animated: true,
-    });
+    goToIndex(activeIndex + 1);
   };
 
   const handleMomentumScrollEnd = (
@@ -74,19 +96,42 @@ export default function OnboardingScreen() {
     setActiveIndex(index);
   };
 
-  const renderItem = ({ item }: { item: Slide }) => (
+  const renderItem = ({ item, index }: { item: Slide; index: number }) => (
     <View style={styles.slide}>
-      <View style={styles.illustrationArea}>
-        <View style={styles.circleTopRight} />
-        <View style={styles.circleTopRightInner} />
-        <View style={styles.circleBottomLeft} />
+      {/* ===== AREA WARNA (BAGIAN ATAS TIKET) ===== */}
+      <View style={styles.ticketTop}>
+        <Text style={styles.watermark}>{item.icon}</Text>
 
-        <View style={styles.iconPill}>
-          <Text style={styles.iconText}>{item.icon}</Text>
+        <View style={styles.circleGlow} />
+        <View style={styles.dotAccentA} />
+        <View style={styles.dotAccentB} />
+
+        <View style={styles.stampWrapper}>
+          <View style={styles.stamp}>
+            <Text style={styles.stampIcon}>{item.icon}</Text>
+            <View style={styles.stampDivider} />
+            <Text style={styles.stampLabel}>{item.stamp}</Text>
+          </View>
         </View>
       </View>
 
-      <View style={styles.textArea}>
+      {/* ===== SOBEKAN PERFORASI ===== */}
+      <View style={styles.perforationRow}>
+        {Array.from({ length: PERFORATION_COUNT }).map((_, i) => (
+          <View key={i} style={styles.perforationHole} />
+        ))}
+      </View>
+
+      {/* ===== AREA KERTAS (BAGIAN BAWAH TIKET) ===== */}
+      <View style={styles.ticketBottom}>
+        <View style={styles.ticketHeaderRow}>
+          <Text style={styles.ticketBrand}>LAPORINAJA</Text>
+          <Text style={styles.ticketNumber}>
+            {item.code} · {String(index + 1).padStart(2, '0')}/
+            {String(SLIDES.length).padStart(2, '0')}
+          </Text>
+        </View>
+
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
       </View>
@@ -117,18 +162,28 @@ export default function OnboardingScreen() {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEventThrottle={16}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
 
       <View style={styles.bottomBar}>
-        <View style={styles.dotsContainer}>
+        <View style={styles.stubsContainer}>
           {SLIDES.map((_, index) => (
-            <View
+            <TouchableOpacity
               key={index}
-              style={[
-                styles.dot,
-                index === activeIndex && styles.dotActive,
-              ]}
-            />
+              onPress={() => goToIndex(index)}
+              hitSlop={{ top: 10, bottom: 10, left: 4, right: 4 }}
+            >
+              <View
+                style={[
+                  styles.stub,
+                  index === activeIndex && styles.stubActive,
+                ]}
+              />
+            </TouchableOpacity>
           ))}
         </View>
 
@@ -138,7 +193,7 @@ export default function OnboardingScreen() {
           activeOpacity={0.85}
         >
           <Text style={styles.nextButtonText}>
-            {isLastSlide ? 'Mulai' : 'Next'}
+            {isLastSlide ? 'Mulai Sekarang' : 'Lanjut'}
           </Text>
           <Text style={styles.nextButtonChevron}>›</Text>
         </TouchableOpacity>
@@ -150,7 +205,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#E05A3A',
   },
 
   skipButton: {
@@ -171,128 +226,196 @@ const styles = StyleSheet.create({
     width,
   },
 
-  illustrationArea: {
-    height: height * 0.55,
+  ticketTop: {
+    height: height * 0.46,
     backgroundColor: '#E05A3A',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
 
-  circleTopRight: {
+  watermark: {
     position: 'absolute',
-    top: -width * 0.25,
-    right: -width * 0.2,
-    width: width * 0.85,
-    height: width * 0.85,
-    borderRadius: width * 0.425,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    fontSize: 260,
+    opacity: 0.1,
+    top: -30,
+    right: -50,
+    transform: [{ rotate: '-12deg' }],
   },
 
-  circleTopRightInner: {
+  circleGlow: {
     position: 'absolute',
-    top: -width * 0.05,
-    right: -width * 0.3,
-    width: width * 0.65,
-    height: width * 0.65,
-    borderRadius: width * 0.325,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-
-  circleBottomLeft: {
-    position: 'absolute',
-    bottom: -width * 0.2,
+    bottom: -width * 0.35,
     left: -width * 0.25,
     width: width * 0.75,
     height: width * 0.75,
     borderRadius: width * 0.375,
-    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+    backgroundColor: 'rgba(0,0,0,0.08)',
   },
 
-  iconPill: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: '#FFFFFF',
+  dotAccentA: {
+    position: 'absolute',
+    top: '20%',
+    left: '12%',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+
+  dotAccentB: {
+    position: 'absolute',
+    bottom: '26%',
+    left: '20%',
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+  },
+
+  stampWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
   },
 
-  iconText: {
-    fontSize: 64,
-  },
-
-  textArea: {
-    flex: 1,
+  stamp: {
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(255,255,255,0.75)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 40,
+    justifyContent: 'center',
+    transform: [{ rotate: '-6deg' }],
+  },
+
+  stampIcon: {
+    fontSize: 52,
+  },
+
+  stampDivider: {
+    width: 36,
+    height: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    marginVertical: 8,
+  },
+
+  stampLabel: {
+    fontFamily: monoFont,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 2,
+  },
+
+  perforationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    backgroundColor: '#E05A3A',
+    height: 10,
+    transform: [{ translateY: -5 }],
+  },
+
+  perforationHole: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FFF8F0',
+  },
+
+  ticketBottom: {
+    flex: 1,
+    backgroundColor: '#FFF8F0',
+    paddingHorizontal: 28,
+    paddingTop: 18,
+  },
+
+  ticketHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderStyle: 'dashed',
+    borderBottomColor: '#E3D5C7',
+    paddingBottom: 14,
+    marginBottom: 20,
+  },
+
+  ticketBrand: {
+    fontFamily: monoFont,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#C6461F',
+    letterSpacing: 1.5,
+  },
+
+  ticketNumber: {
+    fontFamily: monoFont,
+    fontSize: 12,
+    color: '#A8927F',
+    letterSpacing: 0.5,
   },
 
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
-    textAlign: 'center',
+    color: '#2B2118',
     letterSpacing: -0.3,
   },
 
   description: {
     fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 12,
+    color: '#8A7A6D',
+    marginTop: 10,
     lineHeight: 21,
   },
 
   bottomBar: {
-    paddingHorizontal: 24,
+    backgroundColor: '#FFF8F0',
+    paddingHorizontal: 28,
     paddingBottom: 36,
-    alignItems: 'center',
+    paddingTop: 12,
   },
 
-  dotsContainer: {
+  stubsContainer: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 24,
+    gap: 6,
+    marginBottom: 20,
   },
 
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#E5E7EB',
+  stub: {
+    width: 24,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E3D5C7',
   },
 
-  dotActive: {
+  stubActive: {
     backgroundColor: '#E05A3A',
-    width: 20,
+    width: 36,
   },
 
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E05A3A',
-    borderRadius: 30,
-    paddingVertical: 16,
+    backgroundColor: '#2B2118',
+    borderRadius: 16,
+    paddingVertical: 17,
     width: '100%',
     gap: 4,
   },
 
   nextButtonText: {
-    color: '#FFFFFF',
+    color: '#FFF8F0',
     fontSize: 16,
     fontWeight: '600',
   },
 
   nextButtonChevron: {
-    color: '#FFFFFF',
+    color: '#E05A3A',
     fontSize: 20,
     fontWeight: '700',
     marginTop: -2,
